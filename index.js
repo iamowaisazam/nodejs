@@ -1,128 +1,62 @@
-const reader = require('xlsx')
-const prompt = require('prompt-sync')();
-const fs = require('fs');
-const path = require('path');
-
-
-var currentPath = process.cwd();
-const dataPath = "./SKY AGE/EARLY/";
-let outPath = "./output";
-const transectionsPath = "./output/transections.json";
-const storeChalanPath = "./output/chalans/";
+const prompt = require('prompt-sync')({sigint: true});
+var process = require('process');
+const Commands = require('./controller/Command');
+const {CreateRequiredDirectories, createDirectory} = require("./controller/Directory");
+const { generateJson } = require('./controller/Transection');
+const { generateChallan } = require('./controller/Chalan');
+const Config = require('./controller/Config');
+const http = require("http");
 
 
 
-const deleteFolderRecursive = function (outPath) {
-    if (fs.existsSync(outPath)) {
-        fs.readdirSync(outPath).forEach((file, index) => {
-          const curPath = path.join(outPath, file);
-          if (fs.lstatSync(curPath).isDirectory()) {
-           // recurse
-            deleteFolderRecursive(curPath);
-          } else {
-            // delete file
-            fs.unlinkSync(curPath);
-          }
-        });
-        fs.rmdirSync(outPath);
-      }
-};
 
 
-const converObjectToLower = function (res) {
-    let output = {};
-    for (let x in res) {
-        const newKey = x.replace(/ /g, '').toLowerCase();
-        output[String(newKey)] = res[x];
-    }
-    return output;
-}
 
-const GetData = async function (){
+// ( async () => {
+//    console.log(await Config.get());
+//  })();
+ 
 
-        deleteFolderRecursive(outPath);
+
+ const init = async () => {
       
-          fs.readdir('./SKY AGE/EARLY', (err, files) => {
+      await Config.create()
 
-                    let data = [];
-                    files.forEach(file => {
-                    
-                            let exname = dataPath+file;
-                            const excel = reader.readFile(exname);
-                            const sheet_name = "YEARLY";
-                            const temp = reader.utils.sheet_to_json(excel.Sheets[sheet_name])
-                            temp.forEach( async (res) => {
-                                if(res['C.NO']){
-                                    let output = converObjectToLower(res);
-                                    let obj = {
-                                        "filename":file,
-                                        "cno":output['c.no'],
-                                        "date":output['date'],
-                                        "item_name":output['nemeofiteme'],
-                                        "code":output['cod'],
-                                        "lno":output['l.no'],
-                                        "pes":output['pes'],
-                                        "rate":output['rate'],
-                                        "amount":output['amount'],
-                                        "size":output['size']
-                                    };
-                                    data.push(obj);
-                                    // console.log(data);
-                                } 
-                            });
-                            
-                    });
+      console.log('Hi Welcome To Sky Kids Wear.');
+
+      const responseDirectories = await CreateRequiredDirectories();
+      if(!responseDirectories){
+      }
+
+      const resgenerateJson = await generateJson('./SKY AGE/EARLY');
+      if(!resgenerateJson){
+      }
+      console.log('Data Found In "/Sky Age/Early" and Imported Successfully.');
 
 
-                fs.mkdirSync("output")
-                fs.writeFileSync('output/transections.json',JSON.stringify(data));
-                var newWB = reader.utils.book_new()
-                var newWS = reader.utils.json_to_sheet(data)
-                reader.utils.book_append_sheet(newWB,newWS,"name")//workbook name as param
-                reader.writeFile(newWB,"./output/sample.xlsx")
 
-             });
-           
+      Commands.showCommands();
+      let close = false;
+      while (!close) {
+            let input = prompt('Comand: ');
+            close = await Commands.handle(input)
+      }
 }
 
+// init();
+
+ process.once('exit', () => {
+   console.log('Application Closed Successfully');
+   createDirectory("Closed");
+ });
 
 
-const generateChallan = () => {
 
-       deleteFolderRecursive(storeChalanPath);
+ const server = http.createServer((req,res) => {
+      res.end("Hello");
 
-       fs.mkdirSync(storeChalanPath);
-        const sets = new Set();	
-        const data = JSON.parse(fs.readFileSync(transectionsPath));
-        const convert = data.map((c) => sets.add(Number(c.cno)));
-        let chalans = [];
-
-        sets.forEach((item) => {
-            let fname = null;
-            let currentChalan = [];
-            data.forEach(element => {
-                if(item == Number(element.cno)){
-                    fname = element.filename;
-                    currentChalan.push(element);
-                }
-            });
-            chalans.push({
-                "chalan_number":item,
-                "file_name":fname,
-                "count":currentChalan.length,
-                chalanItem:currentChalan
-            })
-        });
-
-
-        chalans.forEach(element => {
-             var newWB = reader.utils.book_new()
-             var newWS = reader.utils.json_to_sheet(element.chalanItem);
-             reader.utils.book_append_sheet(newWB,newWS,"name")
-             reader.writeFile(newWB,storeChalanPath+element.file_name+"-"+element.chalan_number+".xlsx")            
-        });
-
-}
-
-
-generateChallan();
+      
+});
+server.listen(400,() => {
+    console.log("Server Started Successfully");
+});

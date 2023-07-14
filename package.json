@@ -6,19 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "pkg": {
-    "scripts": "build/**/*.js",
-    "assets": "views/**/*",
-    "targets": [
-      "node14-linux-arm64"
-    ],
-    "outputPath": "dist"
-  },
   "author": "",
   "license": "ISC",
-  "bin": {
-    "execute": "index.js"
-  },
   "dependencies": {
     "prompt-sync": "^4.2.0",
     "xlsx": "^0.18.5"
