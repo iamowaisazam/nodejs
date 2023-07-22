@@ -1,3 +1,4 @@
+const { generateChallan } = require('./Chalan');
 const Config = require('./Config');
 
 
@@ -31,7 +32,11 @@ const handle = async (cmd) => {
 
     switch (cmd) {
         case 'Generate Challans':
-            console.log(`Pressed ${cmd}`);
+            //  if(await generateChallan()){
+                // console.log("Challans Generated Successfully");
+            //  }
+
+             console.log(await generateChallan());
             break;
 
         case 'Generate PDF':

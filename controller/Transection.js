@@ -4,6 +4,7 @@ const reader = require('xlsx')
 
 
 const readData = async (path) => {
+    try {
 
         let data = [];
         const readdir = await fs.readdirSync(path);
@@ -19,8 +20,12 @@ const readData = async (path) => {
                     } 
                 });
         });
-
-    return data;
+        return data;
+        
+    } catch (error) {
+        console.log("error readData");
+        return false;
+    }
       
 };
 
@@ -35,6 +40,7 @@ const generateJson = async (path) => {
           return true;
         
     } catch (error) {
+        console.log("error generateJson");
         return false;
     }
 
@@ -46,12 +52,15 @@ const saveIntoJson = async (data) => {
         fs.writeFileSync('./data/db.json',JSON.stringify(data));
         return true;
     } catch (error) {
+        console.log("error saveIntoJson");
         return false;
     }
 }
 
 
 const seFileds = async (res,file) => {
+
+    try {
 
         let output = converObjectToLower(res,file);
    
@@ -74,6 +83,14 @@ const seFileds = async (res,file) => {
             "size":output['size']
         };
         return obj
+        
+
+    } catch (error) {
+        console.log("error Setfiled");
+        return false;
+    }
+
+        
 }
 
 
@@ -84,16 +101,6 @@ const converObjectToLower = function (res) {
         output[String(newKey)] = res[x];
     }
     return output;
-}
-
-
-
-const exportIntoExcel= function(){    
-     // var newWB = reader.utils.book_new()
-     // var newWS = reader.utils.json_to_sheet(data)
-     // reader.utils.book_append_sheet(newWB,newWS,"name")//workbook name as param
-     // reader.writeFile(newWB,"./output/sample.xlsx")
-
 }
 
 

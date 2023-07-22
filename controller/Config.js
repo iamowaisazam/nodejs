@@ -7,30 +7,32 @@ const fields = [{
 
 const get = async () => {   
 
-    const dir = await fs.readdirSync('./');
-    if(dir.includes('config.json')){
+    try {
 
-        const resposne = await JSON.parse(fs.readFileSync("./config.json"));
-        return resposne[0];
+        const dir = await fs.readdirSync('./');
+        if(dir.includes('config.json')){
+            const resposne = await JSON.parse(fs.readFileSync("./config.json"));
+            return resposne[0];
+        }else{
+            await create();
+            return await get();   
+        }
 
-    }else{
-        await create();
-        return await get();
-
-        // get();
-        
+    } catch (error) {
+        console.error('Error generateChallan');
+        return false;
     }
+
+    
 }
 
 
 const create = async () => {
     try {
-
         const dir = await fs.readdirSync('./');
         if(!dir.includes('config.json')){
             fs.writeFileSync('./config.json',JSON.stringify(fields));
         }
-
     } catch (error) {
         console.log('Error Create Config');
         return false;
